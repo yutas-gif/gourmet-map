@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Gourmet Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --ink: #1A1610;
+    --rust: #C4522A;
+    --gold: #B8963E;
+    --sage: #6B7B5E;
+    --mist: #D4CBB8;
+    --paper: #EDE8DC;
+    --accent: #8B3A2A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ====== HEADER ====== */
+  header {
+    background: var(--ink);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 2px solid var(--rust);
+  }
+
+  .logo {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.3rem;
+    color: var(--cream);
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .logo span {
+    color: var(--gold);
+    font-size: 1.5rem;
+  }
+
+  nav {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .nav-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--mist);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.85rem;
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .nav-btn:hover { color: var(--cream); border-color: var(--mist); }
+  .nav-btn.active { background: var(--rust); color: var(--cream); border-color: var(--rust); }
+
+  /* ====== PAGES ====== */
+  .page { display: none; min-height: calc(100vh - 64px); padding: 2rem; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ====== PAGE HEADER ====== */
+  .page-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.8rem;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .page-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--mist), transparent);
+    margin-left: 0.5rem;
+  }
+
+  .page-subtitle {
+    color: var(--sage);
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* ====== INPUT PAGE ====== */
+  .form-card {
+    background: var(--paper);
+    border: 1px solid var(--mist);
+    border-radius: 4px;
+    padding: 2rem;
+    max-width: 640px;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--sage);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  label .required {
+    color: var(--rust);
+    margin-left: 0.3rem;
+  }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--cream);
+    border: 1px solid var(--mist);
+    border-radius: 2px;
+    padding: 0.75rem 1rem;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    appearance: none;
+  }
+
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: var(--rust);
+    box-shadow: 0 0 0 3px rgba(196, 82, 42, 0.1);
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  .select-wrap {
+    position: relative;
+  }
+
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sage);
+    pointer-events: none;
+    font-size: 0.9rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .btn-primary {
+    background: var(--rust);
+    color: var(--cream);
+    border: none;
+    padding: 0.85rem 2.5rem;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+  }
+
+  .btn-primary:hover { background: var(--accent); }
+  .btn-primary:active { transform: scale(0.98); }
+
+  .success-toast {
+    display: none;
+    background: var(--sage);
+    color: var(--cream);
+    padding: 0.75rem 1.25rem;
+    border-radius: 2px;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* ====== MAP PAGE ====== */
+  .map-container {
+    background: var(--paper);
+    border: 1px solid var(--mist);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .map-notice {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .map-notice a { color: var(--gold); text-decoration: none; }
+  .map-notice a:hover { text-decoration: underline; }
+
+  /* ===== MAP PAGE ===== */
+  .map-section {
+    background: var(--paper);
+    border: 1px solid var(--mist);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .map-section-header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* マイマップ埋め込みエリア */
+  .mymap-iframe-wrap {
+    position: relative;
+    width: 100%;
+    height: 55vh;
+    min-height: 360px;
+    background: var(--paper);
+  }
+
+  .mymap-iframe-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  .mymap-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: var(--sage);
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .mymap-placeholder .big-icon { font-size: 2.5rem; }
+  .mymap-placeholder p { font-size: 0.85rem; line-height: 1.6; }
+
+  .mymap-url-bar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--cream);
+    border-top: 1px solid var(--mist);
+  }
+
+  .mymap-url-bar input {
+    flex: 1;
+    background: var(--paper);
+    border: 1px solid var(--mist);
+    border-radius: 2px;
+    padding: 0.5rem 0.75rem;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.82rem;
+    color: var(--ink);
+    outline: none;
+  }
+
+  .mymap-url-bar input:focus { border-color: var(--rust); }
+
+  .btn-set-map {
+    background: var(--rust);
+    color: var(--cream);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 2px;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+
+  .btn-set-map:hover { background: var(--accent); }
+
+  /* 店舗リスト（マップページ） */
+  .store-tap-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .store-tap-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--paper);
+    border: 1px solid var(--mist);
+    border-radius: 3px;
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color 0.15s, background 0.15s;
+    cursor: pointer;
+  }
+
+  .store-tap-item:hover, .store-tap-item:active {
+    border-color: var(--rust);
+    background: #f8f2e8;
+  }
+
+  .store-tap-num {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.75rem;
+    color: var(--mist);
+    min-width: 1.2rem;
+    text-align: right;
+  }
+
+  .store-tap-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1rem;
+    flex: 1;
+  }
+
+  .store-tap-meta {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .store-tap-arrow {
+    color: var(--rust);
+    font-size: 0.9rem;
+    margin-left: 0.25rem;
+  }
+
+  .map-step-guide {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+    line-height: 1.8;
+  }
+
+  .map-step-guide ol {
+    padding-left: 1.2rem;
+    margin-top: 0.5rem;
+  }
+
+  .map-step-guide li { margin-bottom: 0.2rem; }
+  .map-step-guide a { color: var(--gold); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ====== LIST PAGE ====== */
+  .list-controls {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .list-controls label {
+    text-transform: none;
+    font-size: 0.85rem;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .sort-select {
+    background: var(--paper);
+    border: 1px solid var(--mist);
+    padding: 0.5rem 0.8rem;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.85rem;
+    color: var(--ink);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .sort-select:focus { border-color: var(--rust); }
+
+  .list-count {
+    margin-left: auto;
+    color: var(--sage);
+    font-size: 0.8rem;
+  }
+
+  .store-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .store-card {
+    background: var(--paper);
+    border: 1px solid var(--mist);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    transition: border-color 0.2s, transform 0.15s;
+    cursor: default;
+  }
+
+  .store-card:hover {
+    border-color: var(--rust);
+    transform: translateX(3px);
+  }
+
+  .store-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+  }
+
+  .store-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--sage);
+  }
+
+  .tag {
+    background: var(--mist);
+    color: var(--ink);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .tag.genre { background: var(--ink); color: var(--cream); }
+  .tag.station { background: var(--sage); color: var(--cream); }
+
+  .store-desc {
+    font-size: 0.85rem;
+    color: #555;
+    margin-top: 0.4rem;
+  }
+
+  .store-info-from {
+    font-size: 0.78rem;
+    color: var(--mist);
+    text-align: right;
+    white-space: nowrap;
+    padding-top: 0.2rem;
+  }
+
+  .store-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .btn-delete {
+    background: none;
+    border: 1px solid var(--mist);
+    color: var(--sage);
+    padding: 0.3rem 0.6rem;
+    border-radius: 2px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+  }
+
+  .btn-delete:hover { border-color: var(--rust); color: var(--rust); background: rgba(196,82,42,0.05); }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--mist);
+  }
+
+  .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .empty-state p { font-size: 0.9rem; }
+  .empty-state a { color: var(--rust); text-decoration: none; cursor: pointer; }
+
+  /* ====== MODAL ====== */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,22,16,0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-backdrop.show { display: flex; }
+
+  .modal {
+    background: var(--cream);
+    border: 1px solid var(--mist);
+    border-radius: 4px;
+    padding: 2rem;
+    max-width: 420px;
+    width: 90%;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal h3 {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .modal p { font-size: 0.9rem; color: var(--sage); margin-bottom: 1.5rem; }
+
+  .modal-btns { display: flex; gap: 0.75rem; justify-content: flex-end; }
+
+  .btn-cancel {
+    background: none;
+    border: 1px solid var(--mist);
+    padding: 0.6rem 1.2rem;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.9rem;
+    color: var(--ink);
+    transition: border-color 0.2s;
+  }
+
+  .btn-cancel:hover { border-color: var(--ink); }
+
+  .btn-danger {
+    background: var(--rust);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.9rem;
+    color: var(--cream);
+    transition: background 0.2s;
+  }
+
+  .btn-danger:hover { background: var(--accent); }
+
+  /* ====== RESPONSIVE ====== */
+  @media (max-width: 600px) {
+    header { padding: 0 1rem; }
+    .nav-btn { padding: 0.4rem 0.7rem; font-size: 0.78rem; }
+    .page { padding: 1.25rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .form-card { padding: 1.25rem; }
+  }
+
+
+  /* ====== LOGIN ====== */
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2rem;
+  }
+
+  .login-card {
+    background: var(--paper);
+    border: 1px solid var(--mist);
+    border-radius: 6px;
+    padding: 2.5rem 2rem;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .login-logo {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .login-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.5rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .login-subtitle {
+    color: var(--sage);
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .btn-google-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    padding: 0.9rem 1.5rem;
+    border-radius: 3px;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .btn-google-login:hover { background: var(--rust); }
+
+  .login-note {
+    font-size: 0.75rem;
+    color: var(--mist);
+    margin-top: 1rem;
+  }
+
+  .user-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--sage);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: var(--cream);
+    overflow: hidden;
+  }
+
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .btn-logout {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--mist);
+    padding: 0.25rem 0.6rem;
+    border-radius: 2px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .btn-logout:hover { border-color: var(--cream); color: var(--cream); }
+
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--sage);
+    font-size: 0.9rem;
+  }
+
+  .loading-spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--mist);
+    border-top-color: var(--rust);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  /* ====== CALENDAR ====== */
+  .date-input-wrap {
+    position: relative;
+  }
+
+  .date-display {
+    width: 100%;
+    background: var(--cream);
+    border: 1px solid var(--mist);
+    border-radius: 2px;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 46px;
+    box-sizing: border-box;
+  }
+
+  .date-display:focus, .date-display.open {
+    border-color: var(--rust);
+    box-shadow: 0 0 0 3px rgba(196, 82, 42, 0.1);
+    outline: none;
+  }
+
+  .date-display .placeholder { color: var(--mist); }
+  .date-display .cal-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sage);
+    font-size: 1rem;
+    pointer-events: none;
+  }
+
+  .calendar-popup {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 500;
+    background: var(--cream);
+    border: 1px solid var(--mist);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    width: 280px;
+    padding: 0.75rem;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .calendar-popup.open { display: block; }
+
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .cal-nav {
+    background: none;
+    border: 1px solid var(--mist);
+    border-radius: 2px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+
+  .cal-nav:hover { background: var(--paper); }
+
+  .cal-month-label {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .cal-today-btn {
+    display: block;
+    width: 100%;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    border-radius: 2px;
+    padding: 0.45rem;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    margin-bottom: 0.6rem;
+    transition: background 0.15s;
+    letter-spacing: 0.03em;
+  }
+
+  .cal-today-btn:hover { background: var(--rust); }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .cal-dow {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--sage);
+    padding: 0.2rem 0;
+    font-weight: 500;
+  }
+
+  .cal-day {
+    text-align: center;
+    padding: 0.35rem 0;
+    border-radius: 2px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    border: 1px solid transparent;
+  }
+
+  .cal-day:hover { background: var(--paper); border-color: var(--mist); }
+  .cal-day.today { border-color: var(--rust); color: var(--rust); font-weight: 600; }
+  .cal-day.selected { background: var(--rust); color: var(--cream); border-color: var(--rust); }
+  .cal-day.other-month { color: var(--mist); }
+  .cal-day.empty { cursor: default; }
+  .cal-day.empty:hover { background: none; border-color: transparent; }
+
+  .cal-clear {
+    display: block;
+    width: 100%;
+    background: none;
+    border: 1px solid var(--mist);
+    border-radius: 2px;
+    padding: 0.35rem;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 0.78rem;
+    color: var(--sage);
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: border-color 0.15s;
+  }
+
+  .cal-clear:hover { border-color: var(--rust); color: var(--rust); }
+</style>
+</head>
+<body>
+
+<!-- ローディング -->
+<div id="loading-overlay" class="loading-overlay">
+  <div class="loading-spinner"></div>
+  <span>読み込み中...</span>
+</div>
+
+<!-- ログイン画面 -->
+<div id="login-screen" style="display:none;">
+  <div class="login-card">
+    <div class="login-logo">🍜</div>
+    <h1 class="login-title">My Gourmet Map</h1>
+    <p class="login-subtitle">Googleアカウントでログインすると<br>機種変更してもデータが引き継がれます</p>
+    <button class="btn-google-login" onclick="loginWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#fff" d="M9 3.48c1.69 0 2.83.73 3.48 1.34l2.54-2.48C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l2.91 2.26C4.6 5.05 6.62 3.48 9 3.48z"/><path fill="#fff" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#fff" d="M3.88 10.78A5.54 5.54 0 0 1 3.58 9c0-.62.11-1.22.29-1.78L.96 4.96A9.008 9.008 0 0 0 0 9c0 1.45.35 2.82.96 4.04l2.92-2.26z"/><path fill="#fff" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.4-1.57-5.12-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/></svg>
+      Googleでログイン
+    </button>
+    <p class="login-note">※ログイン情報はGoogleが管理します</p>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <span>🍜</span> My Gourmet Map
+  </div>
+  <nav>
+    <button class="nav-btn active" onclick="showPage('input')">✏️ 入力</button>
+    <button class="nav-btn" onclick="showPage('map')">🗺 マップ</button>
+    <button class="nav-btn" onclick="showPage('list')">📋 一覧</button>
+  </nav>
+  <div class="user-bar">
+    <div class="user-avatar" id="user-avatar">?</div>
+    <button class="btn-logout" onclick="logout()">ログアウト</button>
+  </div>
+</header>
+
+<!-- ===== 入力ページ ===== -->
+<div id="page-input" class="page active">
+  <h1 class="page-title">🍽 新しいお店を追加</h1>
+  <p class="page-subtitle">気になるお店の情報を記録しておきましょう</p>
+
+  <div class="form-card">
+    <div class="form-group">
+      <label>店舗名 <span class="required">*</span></label>
+      <input type="text" id="f-name" placeholder="例：鮨 なか田" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>ジャンル <span class="required">*</span></label>
+        <div class="select-wrap">
+          <select id="f-genre">
+            <option value="">選択してください</option>
+            <option>和食</option>
+            <option>寿司・海鮮</option>
+            <option>焼肉・ステーキ</option>
+            <option>ラーメン・麺類</option>
+            <option>イタリアン</option>
+            <option>フレンチ</option>
+            <option>中華</option>
+            <option>韓国料理</option>
+            <option>タイ料理・アジア料理</option>
+            <option>カフェ・スイーツ</option>
+            <option>居酒屋・バー</option>
+            <option>ファストフード</option>
+            <option>その他</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>最寄り駅</label>
+        <input type="text" id="f-station" placeholder="例：恵比寿駅" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>住所 <span style="color:var(--rust);font-size:0.75rem;font-weight:normal;text-transform:none;">📍 入力するとマップに正確にピンが立ちます</span></label>
+      <input type="text" id="f-address" placeholder="例：東京都渋谷区恵比寿1-2-3" />
+    </div>
+
+    <div class="form-group">
+      <label>何の店か（メモ）</label>
+      <textarea id="f-desc" placeholder="例：カウンター8席の小さな鮨屋。おまかせのみ。ランチもあり。"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>いつ聞いたか</label>
+      <div class="date-input-wrap" id="f-when-wrap">
+        <button type="button" class="date-display" id="f-when-display" onclick="toggleCalendar('f-when')">
+          <span id="f-when-label" class="placeholder">日付を選択</span>
+          <span class="cal-icon">📅</span>
+        </button>
+        <div class="calendar-popup" id="f-when-cal"></div>
+        <input type="hidden" id="f-when" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>どこで聞いたか</label>
+        <input type="text" id="f-where" placeholder="例：会食の席で" />
+      </div>
+      <div class="form-group">
+        <label>誰から聞いたか</label>
+        <input type="text" id="f-from" placeholder="例：田中さん" />
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="addStore()">
+      ＋ お店を追加する
+    </button>
+
+    <div class="success-toast" id="success-toast">✓ お店を追加しました！</div>
+  </div>
+</div>
+
+<!-- ===== マップページ ===== -->
+<div id="page-map" class="page">
+  <h1 class="page-title">🗺 グルメマップ</h1>
+  <p class="page-subtitle">Googleマップで検索してピンを立てよう</p>
+
+  <!-- Googleマップを開くボタン -->
+  <div style="margin-bottom:1rem;">
+    <a href="https://www.google.com/maps" target="_blank" rel="noopener"
+      style="display:flex;align-items:center;justify-content:center;gap:0.6rem;
+      background:var(--rust);color:var(--cream);text-decoration:none;
+      padding:1rem;border-radius:3px;font-size:1.05rem;font-family:'Shippori Mincho',serif;
+      letter-spacing:0.05em;transition:background 0.2s;border:none;"
+      onmouseover="this.style.background='var(--accent)'"
+      onmouseout="this.style.background='var(--rust)'">
+      🗺&nbsp; Google マップで開く
+    </a>
+  </div>
+
+  <!-- マップ未登録のお店一覧 -->
+  <div class="map-section">
+    <div class="map-section-header" id="map-list-header">
+      📍 マップ未登録のお店 — タップしてGoogleマップで開く
+    </div>
+    <div style="padding:0.75rem;">
+      <div class="store-tap-list" id="store-tap-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 登録済み確認モーダル -->
+<div class="modal-backdrop" id="mapped-modal">
+  <div class="modal">
+    <h3>📍 マップに登録済みにする</h3>
+    <p id="mapped-modal-text">このお店をマップ登録済みにしますか？</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeMappedModal()">キャンセル</button>
+      <button class="btn-primary" style="padding:0.6rem 1.2rem;" onclick="confirmMapped()">登録済みにする</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 一覧ページ ===== -->
+<div id="page-list" class="page">
+  <h1 class="page-title">📋 お店一覧</h1>
+  <p class="page-subtitle">登録済みのお店を確認・管理できます</p>
+
+  <div class="list-controls">
+    <label>並び順：</label>
+    <select class="sort-select" id="sort-select" onchange="renderList()">
+      <option value="kana">五十音順（店名）</option>
+      <option value="station">最寄り駅順</option>
+      <option value="genre">ジャンル順</option>
+    </select>
+
+    <label style="margin-left:0.5rem">ジャンル絞込：</label>
+    <select class="sort-select" id="filter-genre" onchange="renderList()">
+      <option value="">すべて</option>
+    </select>
+
+    <label>駅絞込：</label>
+    <select class="sort-select" id="filter-station" onchange="renderList()">
+      <option value="">すべて</option>
+    </select>
+
+    <span class="list-count" id="list-count"></span>
+  </div>
+
+  <div class="store-list" id="store-list"></div>
+</div>
+
+<!-- ===== 削除確認モーダル ===== -->
+<div class="modal-backdrop" id="delete-modal">
+  <div class="modal">
+    <h3>🗑 削除の確認</h3>
+    <p id="delete-modal-text">このお店を削除しますか？この操作は元に戻せません。</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeDeleteModal()">キャンセル</button>
+      <button class="btn-danger" onclick="confirmDelete()">削除する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 編集モーダル ===== -->
+<div class="modal-backdrop" id="edit-modal">
+  <div class="modal" style="max-width:500px;width:95%;">
+    <h3>✏️ お店を編集</h3>
+    <div style="display:flex;flex-direction:column;gap:1rem;margin-top:1rem;">
+      <div class="form-group" style="margin:0;">
+        <label>店舗名 <span class="required">*</span></label>
+        <input type="text" id="edit-name" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div class="form-group" style="margin:0;">
+          <label>ジャンル <span class="required">*</span></label>
+          <div class="select-wrap">
+            <select id="edit-genre">
+              <option value="">選択してください</option>
+              <option>和食</option>
+              <option>寿司・海鮮</option>
+              <option>焼肉・ステーキ</option>
+              <option>ラーメン・麺類</option>
+              <option>イタリアン</option>
+              <option>フレンチ</option>
+              <option>中華</option>
+              <option>韓国料理</option>
+              <option>タイ料理・アジア料理</option>
+              <option>カフェ・スイーツ</option>
+              <option>居酒屋・バー</option>
+              <option>ファストフード</option>
+              <option>その他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>最寄り駅</label>
+          <input type="text" id="edit-station" />
+        </div>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>住所</label>
+        <input type="text" id="edit-address" />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>何の店か（メモ）</label>
+        <textarea id="edit-desc" style="min-height:64px;resize:vertical;width:100%;background:var(--cream);border:1px solid var(--mist);border-radius:2px;padding:0.6rem 0.8rem;font-family:inherit;font-size:0.9rem;outline:none;"></textarea>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>いつ聞いたか</label>
+        <div class="date-input-wrap" id="edit-when-wrap">
+          <button type="button" class="date-display" id="edit-when-display" onclick="toggleCalendar('edit-when')">
+            <span id="edit-when-label" class="placeholder">日付を選択</span>
+            <span class="cal-icon">📅</span>
+          </button>
+          <div class="calendar-popup" id="edit-when-cal"></div>
+          <input type="hidden" id="edit-when" />
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div class="form-group" style="margin:0;">
+          <label>どこで聞いたか</label>
+          <input type="text" id="edit-where" />
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>誰から聞いたか</label>
+          <input type="text" id="edit-from" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-btns" style="margin-top:1.5rem;">
+      <button class="btn-cancel" onclick="closeEditModal()">キャンセル</button>
+      <button class="btn-primary" style="padding:0.6rem 1.4rem;" onclick="confirmEdit()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== SUPABASE =====
+const SUPABASE_URL = 'https://kbifjpokdgxqpbwwzxeh.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiaWZqcG9rZGd4cXBid3d6eGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzkyMzIsImV4cCI6MjA5MTgxNTIzMn0.7fp2T-RXEFlEMSRIYo12paRiMiMxGRIf8QYHnQq2c_0';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let stores = [];
+let deleteTargetId = null;
+
+// ===== AUTH =====
+async function loginWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+  if (error) alert('ログインエラー: ' + error.message);
+}
+
+async function logout() {
+  await supabase.auth.signOut();
+  currentUser = null;
+  stores = [];
+  document.getElementById('login-screen').style.display = 'flex';
+  document.querySelector('header').style.display = 'none';
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+}
+
+function updateUserUI(user) {
+  const avatar = document.getElementById('user-avatar');
+  if (user.user_metadata?.avatar_url) {
+    avatar.innerHTML = `<img src="${user.user_metadata.avatar_url}" alt="avatar">`;
+  } else {
+    avatar.textContent = (user.email || 'U')[0].toUpperCase();
+  }
+}
+
+// ===== DATA =====
+async function save(store) {
+  if (!currentUser) return;
+  const data = {
+    user_id: currentUser.id,
+    name: store.name,
+    genre: store.genre,
+    station: store.station || '',
+    address: store.address || '',
+    desc_text: store.desc || '',
+    when_heard: store.when || '',
+    where_heard: store.where || '',
+    from_heard: store.from || '',
+    map_registered: store.mapRegistered || false
+  };
+  if (store.supabase_id) {
+    await supabase.from('stores').update(data).eq('id', store.supabase_id);
+  } else {
+    const { data: inserted } = await supabase.from('stores').insert(data).select().single();
+    if (inserted) store.supabase_id = inserted.id;
+  }
+}
+
+async function deleteFromDB(store) {
+  if (store.supabase_id) {
+    await supabase.from('stores').delete().eq('id', store.supabase_id);
+  }
+}
+
+async function loadStores() {
+  const { data, error } = await supabase
+    .from('stores')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) { console.error(error); return; }
+  stores = (data || []).map(r => ({
+    id: r.id,
+    supabase_id: r.id,
+    name: r.name,
+    genre: r.genre,
+    station: r.station,
+    address: r.address,
+    desc: r.desc_text,
+    when: r.when_heard,
+    where: r.where_heard,
+    from: r.from_heard,
+    mapRegistered: r.map_registered
+  }));
+}
+
+async function initApp() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const loading = document.getElementById('loading-overlay');
+  const loginScreen = document.getElementById('login-screen');
+  const header = document.querySelector('header');
+
+  if (session?.user) {
+    currentUser = session.user;
+    updateUserUI(currentUser);
+    await loadStores();
+    loading.style.display = 'none';
+    loginScreen.style.display = 'none';
+    header.style.display = 'flex';
+    document.querySelectorAll('.page').forEach(p => p.style.display = '');
+    renderList();
+  } else {
+    loading.style.display = 'none';
+    loginScreen.style.display = 'flex';
+    header.style.display = 'none';
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  }
+
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      currentUser = session.user;
+      updateUserUI(currentUser);
+      await loadStores();
+      loading.style.display = 'none';
+      loginScreen.style.display = 'none';
+      header.style.display = 'flex';
+      document.querySelectorAll('.page').forEach(p => p.style.display = '');
+      renderList();
+    }
+  });
+}
+
+// ===== NAVIGATION =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const btns = document.querySelectorAll('.nav-btn');
+  const idx = {input:0, map:1, list:2}[name];
+  btns[idx].classList.add('active');
+
+  if (name === 'map') renderMap();
+  if (name === 'list') renderList();
+}
+
+// ===== INPUT =====
+async function addStore() {
+  const name = document.getElementById('f-name').value.trim();
+  const genre = document.getElementById('f-genre').value;
+  const station = document.getElementById('f-station').value.trim();
+  const address = document.getElementById('f-address').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  const when  = document.getElementById('f-when').value.trim();
+  const where = document.getElementById('f-where').value.trim();
+  const from  = document.getElementById('f-from').value.trim();
+
+  if (!name) { alert('店舗名を入力してください'); return; }
+  if (!genre) { alert('ジャンルを選択してください'); return; }
+
+  const store = { id: Date.now(), name, genre, station, address, desc, when, where, from };
+  stores.push(store);
+  await save(store);
+
+  // reset
+  ['f-name','f-station','f-address','f-desc','f-where','f-from'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-genre').value = '';
+  // カレンダーリセット
+  document.getElementById('f-when').value = '';
+  document.getElementById('f-when-label').textContent = '日付を選択';
+  document.getElementById('f-when-label').className = 'placeholder';
+
+  const toast = document.getElementById('success-toast');
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 2500);
+}
+
+// ===== MAP =====
+let mappedModalTargetId = null;
+
+function renderMap() {
+  // マップ未登録のお店だけ抽出・五十音順
+  const unregistered = stores
+    .filter(s => !s.mapRegistered)
+    .sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+
+  const list = document.getElementById('store-tap-list');
+
+  if (unregistered.length === 0) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:2rem;color:var(--mist);font-size:0.85rem;">
+        🎉 全てのお店がマップに登録済みです
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = unregistered.map((s, i) => {
+    const q = encodeURIComponent(s.address || (s.name + (s.station ? ' ' + s.station : '') + ' 日本'));
+    const gmUrl = `https://www.google.com/maps/search/${q}`;
+    return `
+      <div class="store-tap-item" style="cursor:default;">
+        <a href="${gmUrl}" target="_blank" rel="noopener"
+          style="display:flex;align-items:center;gap:0.75rem;flex:1;text-decoration:none;color:inherit;min-width:0;">
+          <span class="store-tap-num">${i + 1}</span>
+          <div style="flex:1;min-width:0;">
+            <div class="store-tap-name">${escHtml(s.name)}</div>
+            <div style="font-size:0.72rem;color:var(--sage);margin-top:0.1rem;">
+              ${s.genre ? escHtml(s.genre) : ''}${s.genre && s.station ? '　' : ''}${s.station ? '🚉' + escHtml(s.station) : ''}
+            </div>
+          </div>
+          <span class="store-tap-arrow">→</span>
+        </a>
+        <button onclick="openMappedModal(${s.id}, '${escAttr(s.name)}')"
+          style="margin-left:0.5rem;background:var(--sage);color:var(--cream);border:none;
+          padding:0.35rem 0.7rem;border-radius:2px;font-size:0.72rem;cursor:pointer;
+          font-family:'Zen Kaku Gothic New',sans-serif;white-space:nowrap;flex-shrink:0;
+          transition:background 0.2s;"
+          onmouseover="this.style.background='var(--ink)'"
+          onmouseout="this.style.background='var(--sage)'">
+          登録済み
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+
+
+function openMappedModal(id, name) {
+  mappedModalTargetId = id;
+  document.getElementById('mapped-modal-text').textContent = `「${name}」をマップ登録済みにしますか？`;
+  document.getElementById('mapped-modal').classList.add('show');
+}
+
+function closeMappedModal() {
+  mappedModalTargetId = null;
+  document.getElementById('mapped-modal').classList.remove('show');
+}
+
+async function confirmMapped() {
+  const store = stores.find(s => s.id === mappedModalTargetId);
+  if (store) {
+    store.mapRegistered = true;
+    await save(store);
+  }
+  closeMappedModal();
+  renderMap();
+}
+
+// ===== LIST =====
+function getKanaReading(str) {
+  // Sort by first character unicode (Japanese collation approximation)
+  return str;
+}
+
+function renderList() {
+  const sortBy = document.getElementById('sort-select').value;
+  const filterGenre = document.getElementById('filter-genre').value;
+  const filterStation = document.getElementById('filter-station').value;
+
+  // Update filter options
+  updateFilters();
+
+  let filtered = [...stores];
+
+  if (filterGenre) filtered = filtered.filter(s => s.genre === filterGenre);
+  if (filterStation) filtered = filtered.filter(s => s.station === filterStation);
+
+  // Sort
+  filtered.sort((a, b) => {
+    if (sortBy === 'kana') return a.name.localeCompare(b.name, 'ja');
+    if (sortBy === 'station') return a.station.localeCompare(b.station, 'ja');
+    if (sortBy === 'genre') return a.genre.localeCompare(b.genre, 'ja');
+    return 0;
+  });
+
+  document.getElementById('list-count').textContent = `${filtered.length} 件`;
+
+  const container = document.getElementById('store-list');
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🍽</div>
+        <p>${stores.length === 0
+          ? '登録されたお店がありません。<br><a onclick="showPage(\'input\')">入力ページ</a>から追加してください。'
+          : '条件に一致するお店がありません。'
+        }</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(s => `
+    <div class="store-card">
+      <div>
+        <div class="store-name">${escHtml(s.name)}</div>
+        <div class="store-meta">
+          ${s.genre ? `<span class="tag genre">${escHtml(s.genre)}</span>` : ''}
+          ${s.station ? `<span class="tag station">🚉 ${escHtml(s.station)}</span>` : ''}
+        </div>
+        ${s.address ? `<div class="store-desc" style="color:var(--sage)">📍 ${escHtml(s.address)}</div>` : ''}
+        ${s.desc ? `<div class="store-desc">${escHtml(s.desc)}</div>` : ''}
+        ${(s.when || s.where || s.from) ? `
+          <div style="font-size:0.78rem;color:var(--sage);margin-top:0.4rem;">
+            ${s.when ? `📅 ${escHtml(s.when)}` : ''} ${s.where ? `📍 ${escHtml(s.where)}` : ''} ${s.from ? `👤 ${escHtml(s.from)}` : ''}
+          </div>
+        ` : ''}
+      </div>
+      <div class="store-actions">
+        <a href="https://www.google.com/maps/search/${encodeURIComponent(s.name + (s.station ? ' ' + s.station : ''))}" 
+           target="_blank" rel="noopener"
+           style="display:inline-flex;align-items:center;gap:0.3rem;color:var(--sage);font-size:0.75rem;text-decoration:none;padding:0.3rem 0.5rem;border:1px solid var(--mist);border-radius:2px;white-space:nowrap;transition:all 0.2s;"
+           onmouseover="this.style.borderColor='var(--sage)'" 
+           onmouseout="this.style.borderColor='var(--mist)'">
+          🗺 マップ
+        </a>
+        <button class="btn-delete" style="background:var(--sage);color:var(--cream);border:none;" onclick="openEditModal(${s.id})">編集</button>
+        <button class="btn-delete" onclick="openDeleteModal(${s.id}, '${escAttr(s.name)}')">削除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateFilters() {
+  const genreSelect = document.getElementById('filter-genre');
+  const stationSelect = document.getElementById('filter-station');
+  const currentGenre = genreSelect.value;
+  const currentStation = stationSelect.value;
+
+  const genres = [...new Set(stores.map(s => s.genre).filter(Boolean))].sort((a,b) => a.localeCompare(b,'ja'));
+  const stations = [...new Set(stores.map(s => s.station).filter(Boolean))].sort((a,b) => {
+    const normalize = s => s.replace(/駅$/, '');
+    return normalize(a).localeCompare(normalize(b), 'ja');
+  });
+
+  genreSelect.innerHTML = '<option value="">すべてのジャンル</option>' + genres.map(g => `<option ${g===currentGenre?'selected':''}>${g}</option>`).join('');
+  stationSelect.innerHTML = '<option value="">すべての駅</option>' + stations.map(s => `<option ${s===currentStation?'selected':''}>${s}</option>`).join('');
+}
+
+// ===== DELETE =====
+function openDeleteModal(id, name) {
+  deleteTargetId = id;
+  document.getElementById('delete-modal-text').textContent = `「${name}」を削除しますか？この操作は元に戻せません。`;
+  document.getElementById('delete-modal').classList.add('show');
+}
+
+function closeDeleteModal() {
+  deleteTargetId = null;
+  document.getElementById('delete-modal').classList.remove('show');
+}
+
+async function confirmDelete() {
+  const store = stores.find(s => s.id === deleteTargetId);
+  if (store) await deleteFromDB(store);
+  stores = stores.filter(s => s.id !== deleteTargetId);
+  closeDeleteModal();
+  renderList();
+}
+
+// ===== EDIT =====
+let editTargetId = null;
+
+function openEditModal(id) {
+  const s = stores.find(s => s.id === id);
+  if (!s) return;
+  editTargetId = id;
+  document.getElementById('edit-name').value    = s.name    || '';
+  document.getElementById('edit-genre').value   = s.genre   || '';
+  document.getElementById('edit-station').value = s.station || '';
+  document.getElementById('edit-address').value = s.address || '';
+  document.getElementById('edit-desc').value    = s.desc    || '';
+  document.getElementById('edit-where').value   = s.where   || '';
+  document.getElementById('edit-from').value    = s.from    || '';
+  // カレンダー初期化
+  const whenVal = s.when || '';
+  document.getElementById('edit-when').value = whenVal;
+  const lbl = document.getElementById('edit-when-label');
+  if (whenVal) { lbl.textContent = whenVal; lbl.className = ''; }
+  else         { lbl.textContent = '日付を選択'; lbl.className = 'placeholder'; }
+  // カレンダーの表示月をセット
+  const today = new Date();
+  const dateMatch = whenVal.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+  if (dateMatch) {
+    calState['edit-when'] = { year: +dateMatch[1], month: +dateMatch[2]-1, selected: `${dateMatch[1]}-${String(dateMatch[2]).padStart(2,'0')}-${String(dateMatch[3]).padStart(2,'0')}` };
+  } else {
+    calState['edit-when'] = { year: today.getFullYear(), month: today.getMonth(), selected: null };
+  }
+  document.getElementById('edit-modal').classList.add('show');
+}
+
+function closeEditModal() {
+  editTargetId = null;
+  document.getElementById('edit-modal').classList.remove('show');
+}
+
+function confirmEdit() {
+  const name  = document.getElementById('edit-name').value.trim();
+  const genre = document.getElementById('edit-genre').value;
+  if (!name)  { alert('店舗名を入力してください'); return; }
+  if (!genre) { alert('ジャンルを選択してください'); return; }
+  const s = stores.find(s => s.id === editTargetId);
+  if (!s) return;
+  s.name    = name;
+  s.genre   = genre;
+  s.station = document.getElementById('edit-station').value.trim();
+  s.address = document.getElementById('edit-address').value.trim();
+  s.desc    = document.getElementById('edit-desc').value.trim();
+  s.when    = document.getElementById('edit-when').value.trim();
+  s.where   = document.getElementById('edit-where').value.trim();
+  s.from    = document.getElementById('edit-from').value.trim();
+  await save(s);
+  closeEditModal();
+  renderList();
+}
+
+// ===== CALENDAR =====
+const calState = {}; // { fieldId: { year, month, selectedDate } }
+
+function toggleCalendar(fieldId) {
+  const popup = document.getElementById(fieldId + '-cal');
+  const btn   = document.getElementById(fieldId + '-display');
+  const isOpen = popup.classList.contains('open');
+
+  // 他のカレンダーを閉じる
+  document.querySelectorAll('.calendar-popup.open').forEach(p => {
+    p.classList.remove('open');
+    const b = document.getElementById(p.id.replace('-cal', '-display'));
+    if (b) b.classList.remove('open');
+  });
+
+  if (!isOpen) {
+    const today = new Date();
+    if (!calState[fieldId]) {
+      calState[fieldId] = { year: today.getFullYear(), month: today.getMonth(), selected: null };
+    }
+    renderCalendar(fieldId);
+    popup.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+function renderCalendar(fieldId) {
+  const state  = calState[fieldId];
+  const popup  = document.getElementById(fieldId + '-cal');
+  const today  = new Date();
+  const y = state.year, m = state.month;
+
+  const firstDay = new Date(y, m, 1).getDay(); // 0=日
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+  const dows = ['日','月','火','水','木','金','土'];
+
+  let cells = '';
+  for (let i = 0; i < firstDay; i++) cells += `<div class="cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday   = (y === today.getFullYear() && m === today.getMonth() && d === today.getDate());
+    const dateStr   = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isSelected = state.selected === dateStr;
+    const cls = ['cal-day', isToday ? 'today' : '', isSelected ? 'selected' : ''].filter(Boolean).join(' ');
+    cells += `<div class="${cls}" onclick="selectDate('${fieldId}','${dateStr}')">${d}</div>`;
+  }
+
+  popup.innerHTML = `
+    <button class="cal-today-btn" onclick="selectToday('${fieldId}')">今日</button>
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calMove('${fieldId}',-1)">‹</button>
+      <span class="cal-month-label">${y}年${m+1}月</span>
+      <button class="cal-nav" onclick="calMove('${fieldId}',1)">›</button>
+    </div>
+    <div class="cal-grid">
+      ${dows.map(d => `<div class="cal-dow">${d}</div>`).join('')}
+      ${cells}
+    </div>
+    <button class="cal-clear" onclick="clearDate('${fieldId}')">クリア</button>
+  `;
+}
+
+function calMove(fieldId, dir) {
+  const s = calState[fieldId];
+  s.month += dir;
+  if (s.month > 11) { s.month = 0; s.year++; }
+  if (s.month < 0)  { s.month = 11; s.year--; }
+  renderCalendar(fieldId);
+}
+
+function selectToday(fieldId) {
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  selectDate(fieldId, dateStr);
+}
+
+function selectDate(fieldId, dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const label = `${y}年${m}月${d}日`;
+
+  calState[fieldId].selected = dateStr;
+  calState[fieldId].year  = y;
+  calState[fieldId].month = m - 1;
+
+  document.getElementById(fieldId).value = label;
+
+  const lbl = document.getElementById(fieldId + '-label');
+  if (lbl) { lbl.textContent = label; lbl.className = ''; }
+
+  // ポップアップを閉じる
+  document.getElementById(fieldId + '-cal').classList.remove('open');
+  document.getElementById(fieldId + '-display').classList.remove('open');
+}
+
+function clearDate(fieldId) {
+  if (calState[fieldId]) calState[fieldId].selected = null;
+  document.getElementById(fieldId).value = '';
+  const lbl = document.getElementById(fieldId + '-label');
+  if (lbl) { lbl.textContent = '日付を選択'; lbl.className = 'placeholder'; }
+  document.getElementById(fieldId + '-cal').classList.remove('open');
+  document.getElementById(fieldId + '-display').classList.remove('open');
+}
+
+// カレンダー外クリックで閉じる
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.date-input-wrap')) {
+    document.querySelectorAll('.calendar-popup.open').forEach(p => {
+      p.classList.remove('open');
+      const b = document.getElementById(p.id.replace('-cal', '-display'));
+      if (b) b.classList.remove('open');
+    });
+  }
+});
+
+// ===== UTILS =====
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(s) {
+  return String(s).replace(/'/g,"\\'");
+}
+
+// Close modal on backdrop click
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+document.getElementById('mapped-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeMappedModal();
+});
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+
+// Init
+initApp();;
+</script>
+</body>
+</html>
