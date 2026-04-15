@@ -1240,25 +1240,46 @@ async function loadStores() {
 }
 
 async function initApp() {
-  const { data: { session } } = await supabase.auth.getSession();
   const loading = document.getElementById('loading-overlay');
   const loginScreen = document.getElementById('login-screen');
   const header = document.querySelector('header');
 
-  if (session?.user) {
-    currentUser = session.user;
-    updateUserUI(currentUser);
-    await loadStores();
+  function showLogin() {
+    loading.style.display = 'none';
+    loginScreen.style.display = 'flex';
+    header.style.display = 'none';
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  }
+
+  function showApp() {
     loading.style.display = 'none';
     loginScreen.style.display = 'none';
     header.style.display = 'flex';
     document.querySelectorAll('.page').forEach(p => p.style.display = '');
     renderList();
-  } else {
-    loading.style.display = 'none';
-    loginScreen.style.display = 'flex';
-    header.style.display = 'none';
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  }
+
+  // 5秒でタイムアウトしてログイン画面を表示
+  const timeout = setTimeout(() => showLogin(), 5000);
+
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    clearTimeout(timeout);
+
+    if (error) { showLogin(); return; }
+
+    if (session?.user) {
+      currentUser = session.user;
+      updateUserUI(currentUser);
+      await loadStores();
+      showApp();
+    } else {
+      showLogin();
+    }
+  } catch(e) {
+    clearTimeout(timeout);
+    console.error('initApp error:', e);
+    showLogin();
   }
 
   supabase.auth.onAuthStateChange(async (event, session) => {
@@ -1266,11 +1287,10 @@ async function initApp() {
       currentUser = session.user;
       updateUserUI(currentUser);
       await loadStores();
-      loading.style.display = 'none';
-      loginScreen.style.display = 'none';
-      header.style.display = 'flex';
-      document.querySelectorAll('.page').forEach(p => p.style.display = '');
-      renderList();
+      showApp();
+    }
+    if (event === 'SIGNED_OUT') {
+      showLogin();
     }
   });
 }
