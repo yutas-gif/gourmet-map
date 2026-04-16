@@ -1558,7 +1558,7 @@ function closeEditModal() {
   document.getElementById('edit-modal').classList.remove('show');
 }
 
-function confirmEdit() {
+async function confirmEdit() {
   const name  = document.getElementById('edit-name').value.trim();
   const genre = document.getElementById('edit-genre').value;
   if (!name)  { alert('店舗名を入力してください'); return; }
