@@ -1156,7 +1156,8 @@
 // ===== SUPABASE =====
 const SUPABASE_URL = 'https://kbifjpokdgxqpbwwzxeh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiaWZqcG9rZGd4cXBid3d6eGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzkyMzIsImV4cCI6MjA5MTgxNTIzMn0.7fp2T-RXEFlEMSRIYo12paRiMiMxGRIf8QYHnQq2c_0';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const { createClient } = window.supabase;
+const sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let stores = [];
@@ -1164,7 +1165,7 @@ let deleteTargetId = null;
 
 // ===== AUTH =====
 async function loginWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
+  const { error } = await sbClient.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.href }
   });
@@ -1172,7 +1173,7 @@ async function loginWithGoogle() {
 }
 
 async function logout() {
-  await supabase.auth.signOut();
+  await sbClient.auth.signOut();
   currentUser = null;
   stores = [];
   document.getElementById('login-screen').style.display = 'flex';
@@ -1205,21 +1206,21 @@ async function save(store) {
     map_registered: store.mapRegistered || false
   };
   if (store.supabase_id) {
-    await supabase.from('stores').update(data).eq('id', store.supabase_id);
+    await sbClient.from('stores').update(data).eq('id', store.supabase_id);
   } else {
-    const { data: inserted } = await supabase.from('stores').insert(data).select().single();
+    const { data: inserted } = await sbClient.from('stores').insert(data).select().single();
     if (inserted) store.supabase_id = inserted.id;
   }
 }
 
 async function deleteFromDB(store) {
   if (store.supabase_id) {
-    await supabase.from('stores').delete().eq('id', store.supabase_id);
+    await sbClient.from('stores').delete().eq('id', store.supabase_id);
   }
 }
 
 async function loadStores() {
-  const { data, error } = await supabase
+  const { data, error } = await sbClient
     .from('stores')
     .select('*')
     .order('created_at', { ascending: true });
@@ -1263,7 +1264,7 @@ async function initApp() {
   const timeout = setTimeout(() => showLogin(), 5000);
 
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await sbClient.auth.getSession();
     clearTimeout(timeout);
 
     if (error) { showLogin(); return; }
@@ -1282,7 +1283,7 @@ async function initApp() {
     showLogin();
   }
 
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  sbClient.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       currentUser = session.user;
       updateUserUI(currentUser);
