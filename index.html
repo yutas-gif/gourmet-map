@@ -11,12 +11,14 @@
   :root {
     --cream: #F5F0E8;
     --ink: #1A1610;
-    --rust: #C4522A;
-    --gold: #B8963E;
-    --sage: #6B7B5E;
-    --mist: #D4CBB8;
+    --rust: #D14A25;
+    --gold: #C49A38;
+    --sage: #4D7A5C;
+    --mist: #CFC5B0;
     --paper: #EDE8DC;
     --accent: #8B3A2A;
+    --pop: #1A9DB0;
+    --pop-light: rgba(26,157,176,0.07);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,7 +33,7 @@
 
   /* ====== HEADER ====== */
   header {
-    background: var(--ink);
+    background: linear-gradient(160deg, #211910 0%, #0F0C08 100%);
     padding: 0 1rem;
     display: flex;
     align-items: center;
@@ -79,7 +81,7 @@
   }
 
   .nav-btn:hover { color: var(--cream); border-color: var(--mist); }
-  .nav-btn.active { background: var(--rust); color: var(--cream); border-color: var(--rust); }
+  .nav-btn.active { background: var(--rust); color: var(--cream); border-color: var(--rust); border-radius: 20px; }
 
   /* ====== PAGES ====== */
   .page { display: none; min-height: calc(100vh - 64px); padding: 2rem; animation: fadeIn 0.3s ease; }
@@ -101,9 +103,11 @@
   .page-title::after {
     content: '';
     flex: 1;
-    height: 1px;
-    background: linear-gradient(to right, var(--mist), transparent);
-    margin-left: 0.5rem;
+    height: 2px;
+    background: linear-gradient(to right, var(--rust), transparent);
+    margin-left: 0.75rem;
+    border-radius: 2px;
+    opacity: 0.5;
   }
 
   .page-subtitle {
@@ -117,9 +121,10 @@
   .form-card {
     background: var(--paper);
     border: 1px solid var(--mist);
-    border-radius: 4px;
+    border-radius: 8px;
     padding: 2rem;
     max-width: 640px;
+    box-shadow: 0 4px 24px rgba(26,22,16,0.06);
   }
 
   .form-group {
@@ -156,8 +161,8 @@
   }
 
   input[type="text"]:focus, textarea:focus, select:focus {
-    border-color: var(--rust);
-    box-shadow: 0 0 0 3px rgba(196, 82, 42, 0.1);
+    border-color: var(--pop);
+    box-shadow: 0 0 0 3px rgba(26, 157, 176, 0.12);
   }
 
   textarea { resize: vertical; min-height: 80px; }
@@ -184,7 +189,7 @@
   }
 
   .btn-primary {
-    background: var(--rust);
+    background: linear-gradient(135deg, var(--rust) 0%, #B84020 100%);
     color: var(--cream);
     border: none;
     padding: 0.85rem 2.5rem;
@@ -192,26 +197,28 @@
     font-size: 0.95rem;
     letter-spacing: 0.08em;
     cursor: pointer;
-    border-radius: 2px;
-    transition: background 0.2s, transform 0.1s;
+    border-radius: 4px;
+    transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     font-weight: 500;
+    box-shadow: 0 2px 8px rgba(209,74,37,0.3);
   }
 
-  .btn-primary:hover { background: var(--accent); }
+  .btn-primary:hover { opacity: 0.88; box-shadow: 0 4px 16px rgba(209,74,37,0.4); }
   .btn-primary:active { transform: scale(0.98); }
 
   .success-toast {
     display: none;
-    background: var(--sage);
+    background: linear-gradient(135deg, var(--sage), #2D6B48);
     color: var(--cream);
     padding: 0.75rem 1.25rem;
-    border-radius: 2px;
+    border-radius: 4px;
     font-size: 0.9rem;
     margin-top: 1rem;
     animation: fadeIn 0.3s ease;
+    box-shadow: 0 2px 10px rgba(77,122,92,0.3);
   }
 
   /* ====== MAP PAGE ====== */
@@ -240,19 +247,21 @@
   .map-section {
     background: var(--paper);
     border: 1px solid var(--mist);
-    border-radius: 4px;
+    border-radius: 8px;
     overflow: hidden;
     margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(26,22,16,0.05);
   }
 
   .map-section-header {
-    background: var(--ink);
+    background: linear-gradient(135deg, #1F1A12 0%, #0F0C08 100%);
     color: var(--cream);
     padding: 0.6rem 1rem;
     font-size: 0.82rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    border-bottom: 1px solid rgba(26,157,176,0.25);
   }
 
   /* マイマップ埋め込みエリア */
@@ -307,7 +316,7 @@
     outline: none;
   }
 
-  .mymap-url-bar input:focus { border-color: var(--rust); }
+  .mymap-url-bar input:focus { border-color: var(--pop); }
 
   .btn-set-map {
     background: var(--rust);
@@ -337,17 +346,18 @@
     gap: 0.75rem;
     background: var(--paper);
     border: 1px solid var(--mist);
-    border-radius: 3px;
+    border-radius: 6px;
     padding: 0.85rem 1rem;
     text-decoration: none;
     color: var(--ink);
-    transition: border-color 0.15s, background 0.15s;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
     cursor: pointer;
+    box-shadow: 0 1px 4px rgba(26,22,16,0.04);
   }
 
   .store-tap-item:hover, .store-tap-item:active {
-    border-color: var(--rust);
-    background: #f8f2e8;
+    border-color: var(--pop);
+    background: var(--pop-light);
   }
 
   .store-tap-num {
@@ -371,7 +381,7 @@
   }
 
   .store-tap-arrow {
-    color: var(--rust);
+    color: var(--pop);
     font-size: 0.9rem;
     margin-left: 0.25rem;
   }
@@ -419,12 +429,14 @@
     font-family: 'Zen Kaku Gothic New', sans-serif;
     font-size: 0.85rem;
     color: var(--ink);
-    border-radius: 2px;
+    border-radius: 6px;
     outline: none;
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(26,22,16,0.04);
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
 
-  .sort-select:focus { border-color: var(--rust); }
+  .sort-select:focus { border-color: var(--pop); box-shadow: 0 0 0 3px rgba(26,157,176,0.1); }
 
   .list-count {
     margin-left: auto;
@@ -441,18 +453,37 @@
   .store-card {
     background: var(--paper);
     border: 1px solid var(--mist);
-    border-radius: 4px;
+    border-radius: 8px;
     padding: 1.25rem 1.5rem;
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 0.5rem;
-    transition: border-color 0.2s, transform 0.15s;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
     cursor: default;
+    box-shadow: 0 2px 8px rgba(26,22,16,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .store-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--rust);
+    transform: scaleY(0);
+    transition: transform 0.2s;
+    border-radius: 0 2px 2px 0;
   }
 
   .store-card:hover {
-    border-color: var(--rust);
-    transform: translateX(3px);
+    border-color: rgba(209,74,37,0.35);
+    box-shadow: 0 6px 20px rgba(209,74,37,0.1);
+    transform: translateX(4px);
+  }
+
+  .store-card:hover::before {
+    transform: scaleY(1);
   }
 
   .store-name {
@@ -480,8 +511,8 @@
     font-weight: 500;
   }
 
-  .tag.genre { background: var(--ink); color: var(--cream); }
-  .tag.station { background: var(--sage); color: var(--cream); }
+  .tag.genre { background: var(--ink); color: var(--cream); letter-spacing: 0.04em; }
+  .tag.station { background: var(--pop); color: var(--cream); }
 
   .store-desc {
     font-size: 0.85rem;
@@ -544,11 +575,12 @@
   .modal {
     background: var(--cream);
     border: 1px solid var(--mist);
-    border-radius: 4px;
+    border-radius: 10px;
     padding: 2rem;
     max-width: 420px;
     width: 90%;
     animation: fadeIn 0.2s ease;
+    box-shadow: 0 20px 60px rgba(26,22,16,0.18);
   }
 
   .modal h3 {
@@ -619,11 +651,12 @@
   .login-card {
     background: var(--paper);
     border: 1px solid var(--mist);
-    border-radius: 6px;
+    border-radius: 12px;
     padding: 2.5rem 2rem;
     max-width: 380px;
     width: 100%;
     text-align: center;
+    box-shadow: 0 20px 60px rgba(26,22,16,0.1);
   }
 
   .login-logo {
@@ -651,19 +684,20 @@
     justify-content: center;
     gap: 0.75rem;
     width: 100%;
-    background: var(--ink);
+    background: linear-gradient(135deg, #211910 0%, #0F0C08 100%);
     color: var(--cream);
     border: none;
     padding: 0.9rem 1.5rem;
-    border-radius: 3px;
+    border-radius: 6px;
     font-family: 'Zen Kaku Gothic New', sans-serif;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: opacity 0.2s, box-shadow 0.2s;
     letter-spacing: 0.03em;
+    box-shadow: 0 4px 14px rgba(26,22,16,0.25);
   }
 
-  .btn-google-login:hover { background: var(--rust); }
+  .btn-google-login:hover { opacity: 0.85; box-shadow: 0 6px 20px rgba(209,74,37,0.3); }
 
   .login-note {
     font-size: 0.75rem;
@@ -755,8 +789,8 @@
   }
 
   .date-display:focus, .date-display.open {
-    border-color: var(--rust);
-    box-shadow: 0 0 0 3px rgba(196, 82, 42, 0.1);
+    border-color: var(--pop);
+    box-shadow: 0 0 0 3px rgba(26, 157, 176, 0.12);
     outline: none;
   }
 
@@ -884,6 +918,15 @@
   }
 
   .cal-clear:hover { border-color: var(--rust); color: var(--rust); }
+
+  /* ====== TUTORIAL ====== */
+  .tutorial-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--mist);
+    transition: background 0.2s;
+  }
+  .tutorial-dot.active { background: var(--rust); }
 </style>
 </head>
 <body>
@@ -919,6 +962,7 @@
   </nav>
   <div class="user-bar">
     <div class="user-avatar" id="user-avatar">?</div>
+    <button class="btn-logout" onclick="showTutorial()" title="使い方ガイド">？</button>
     <button class="btn-logout" onclick="logout()">ログアウト</button>
   </div>
 </header>
@@ -1159,6 +1203,13 @@
   </div>
 </div>
 
+<!-- ===== チュートリアルモーダル ===== -->
+<div class="modal-backdrop" id="tutorial-modal">
+  <div class="modal" style="max-width:480px;width:95%;">
+    <div id="tutorial-content"></div>
+  </div>
+</div>
+
 <script>
 // ===== SUPABASE =====
 const SUPABASE_URL = 'https://kbifjpokdgxqpbwwzxeh.supabase.co';
@@ -1230,6 +1281,7 @@ async function loadStores() {
   const { data, error } = await sbClient
     .from('stores')
     .select('*')
+    .eq('user_id', currentUser.id)
     .order('created_at', { ascending: true });
   if (error) { console.error(error); return; }
   stores = (data || []).map(r => ({
@@ -1265,6 +1317,9 @@ async function initApp() {
     header.style.display = 'flex';
     document.querySelectorAll('.page').forEach(p => p.style.display = '');
     renderList();
+    if (!localStorage.getItem('gourmet-map-tutorial-seen')) {
+      setTimeout(() => showTutorial(), 600);
+    }
   }
 
   // 5秒でタイムアウトしてログイン画面を表示
@@ -1382,7 +1437,7 @@ function renderMap() {
           </div>
           <span class="store-tap-arrow">→</span>
         </a>
-        <button onclick="openMappedModal(${s.id}, '${escAttr(s.name)}')"
+        <button onclick="openMappedModal(${s.id})"
           style="margin-left:0.5rem;background:var(--sage);color:var(--cream);border:none;
           padding:0.35rem 0.7rem;border-radius:2px;font-size:0.72rem;cursor:pointer;
           font-family:'Zen Kaku Gothic New',sans-serif;white-space:nowrap;flex-shrink:0;
@@ -1398,8 +1453,10 @@ function renderMap() {
 
 
 
-function openMappedModal(id, name) {
+function openMappedModal(id) {
   mappedModalTargetId = id;
+  const store = stores.find(s => s.id === id);
+  const name = store ? store.name : '';
   document.getElementById('mapped-modal-text').textContent = `「${name}」をマップ登録済みにしますか？`;
   document.getElementById('mapped-modal').classList.add('show');
 }
@@ -1441,8 +1498,8 @@ function renderList() {
   // Sort
   filtered.sort((a, b) => {
     if (sortBy === 'kana') return a.name.localeCompare(b.name, 'ja');
-    if (sortBy === 'station') return a.station.localeCompare(b.station, 'ja');
-    if (sortBy === 'genre') return a.genre.localeCompare(b.genre, 'ja');
+    if (sortBy === 'station') return (a.station || '').localeCompare(b.station || '', 'ja');
+    if (sortBy === 'genre') return (a.genre || '').localeCompare(b.genre || '', 'ja');
     return 0;
   });
 
@@ -1488,7 +1545,7 @@ function renderList() {
           🗺 マップ
         </a>
         <button class="btn-delete" style="background:var(--sage);color:var(--cream);border:none;" onclick="openEditModal(${s.id})">編集</button>
-        <button class="btn-delete" onclick="openDeleteModal(${s.id}, '${escAttr(s.name)}')">削除</button>
+        <button class="btn-delete" onclick="openDeleteModal(${s.id})">削除</button>
       </div>
     </div>
   `).join('');
@@ -1511,8 +1568,10 @@ function updateFilters() {
 }
 
 // ===== DELETE =====
-function openDeleteModal(id, name) {
+function openDeleteModal(id) {
   deleteTargetId = id;
+  const store = stores.find(s => s.id === id);
+  const name = store ? store.name : '';
   document.getElementById('delete-modal-text').textContent = `「${name}」を削除しますか？この操作は元に戻せません。`;
   document.getElementById('delete-modal').classList.add('show');
 }
@@ -1709,6 +1768,82 @@ function escAttr(s) {
   return String(s).replace(/'/g,"\\'");
 }
 
+// ===== TUTORIAL =====
+const TUTORIAL_STEPS = [
+  {
+    icon: '🍜',
+    title: 'My Gourmet Mapへようこそ',
+    body: '気になるお店を登録・管理できるアプリです。<br>Googleアカウントでデータが同期されるので<br>機種変更しても安心です。'
+  },
+  {
+    icon: '✏️',
+    title: 'お店を登録しよう',
+    body: '「入力」タブから店舗名・ジャンル・住所などを記録できます。<br>誰から聞いたか・いつ聞いたかも保存できます。'
+  },
+  {
+    icon: '🗺',
+    title: 'マップで確認しよう',
+    body: '「マップ」タブではGoogleマップでお店を確認できます。<br>お店名をタップするとGoogleマップが開きます。<br>マップに追加したら「登録済み」ボタンで管理しましょう。'
+  },
+  {
+    icon: '📋',
+    title: '一覧で管理しよう',
+    body: '「一覧」タブでは全店舗を一覧表示できます。<br>ジャンルや最寄り駅でフィルタリング・並び替えが可能です。<br>編集・削除も一覧ページから行えます。'
+  }
+];
+
+let tutorialStep = 0;
+
+function showTutorial() {
+  tutorialStep = 0;
+  renderTutorialStep();
+  document.getElementById('tutorial-modal').classList.add('show');
+}
+
+function renderTutorialStep() {
+  const step = TUTORIAL_STEPS[tutorialStep];
+  const total = TUTORIAL_STEPS.length;
+  const isLast = tutorialStep === total - 1;
+  const isFirst = tutorialStep === 0;
+
+  const dots = TUTORIAL_STEPS.map((_, i) =>
+    `<div class="tutorial-dot${i === tutorialStep ? ' active' : ''}"></div>`
+  ).join('');
+
+  document.getElementById('tutorial-content').innerHTML = `
+    <div style="text-align:center;padding:0.5rem 0 1.25rem;">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">${step.icon}</div>
+      <h3 style="font-family:'Shippori Mincho',serif;font-size:1.15rem;margin-bottom:0.75rem;color:var(--ink);">${step.title}</h3>
+      <p style="font-size:0.88rem;color:var(--sage);line-height:1.85;">${step.body}</p>
+    </div>
+    <div style="display:flex;gap:0.4rem;justify-content:center;margin-bottom:1.5rem;">${dots}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="closeTutorial()" style="background:none;border:none;color:var(--mist);font-size:0.78rem;cursor:pointer;padding:0.3rem;font-family:'Zen Kaku Gothic New',sans-serif;">
+        ${isLast ? '' : 'スキップ'}
+      </button>
+      <div style="display:flex;gap:0.5rem;">
+        ${!isFirst ? `<button class="btn-cancel" onclick="tutorialPrev()" style="padding:0.5rem 1rem;font-size:0.85rem;">‹ 前へ</button>` : ''}
+        <button class="btn-primary" onclick="${isLast ? 'closeTutorial()' : 'tutorialNext()'}" style="padding:0.5rem 1.4rem;font-size:0.85rem;">
+          ${isLast ? '始める ✓' : '次へ ›'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function tutorialNext() {
+  if (tutorialStep < TUTORIAL_STEPS.length - 1) { tutorialStep++; renderTutorialStep(); }
+}
+
+function tutorialPrev() {
+  if (tutorialStep > 0) { tutorialStep--; renderTutorialStep(); }
+}
+
+function closeTutorial() {
+  document.getElementById('tutorial-modal').classList.remove('show');
+  localStorage.setItem('gourmet-map-tutorial-seen', '1');
+}
+
 // Close modal on backdrop click
 document.getElementById('delete-modal').addEventListener('click', function(e) {
   if (e.target === this) closeDeleteModal();
@@ -1719,9 +1854,12 @@ document.getElementById('mapped-modal').addEventListener('click', function(e) {
 document.getElementById('edit-modal').addEventListener('click', function(e) {
   if (e.target === this) closeEditModal();
 });
+document.getElementById('tutorial-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeTutorial();
+});
 
 // Init
-initApp();;
+initApp();
 </script>
 </body>
 </html>
